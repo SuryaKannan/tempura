@@ -1,0 +1,25 @@
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.15.5
+  hooks:
+    # Run the linter.
+    - id: ruff-check
+      args: [ --fix ]
+    # Run the formatter.
+    - id: ruff-format
+- repo: local
+  hooks:
+    - id: ty
+      name: ty check
+      # Using 'uvx' ensures 'ty' is available without manual installation
+      entry: uvx ty check
+      language: python
+      types: [python]
+      # Prevents running once per file; runs on the whole project for accuracy
+      pass_filenames: false
+    - id: gofmt
+      name: gofmt
+      entry: gofmt -w
+      language: system
+      types: [go]

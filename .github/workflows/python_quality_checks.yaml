@@ -1,0 +1,25 @@
+name: python-pr-check
+on:
+  pull_request:
+    paths:
+      - "sdk/python/**"
+      - "justfile"
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/environment
+
+      - name: Lint
+        run: just py-lint
+
+      - name: Format
+        if: always()
+        run: just py-format
+
+      - name: Type check
+        if: always()
+        run: just py-typecheck
+
+# TODO(SK): Add tests
