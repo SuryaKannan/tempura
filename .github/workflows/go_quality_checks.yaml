@@ -1,0 +1,26 @@
+name: go-pr-check
+on:
+  pull_request:
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - "go.mod"
+      - "go.sum"
+      - "justfile"
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/environment
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v7
+
+      - name: Format
+        if: always()
+        run: just go-format
+
+      - name: Test
+        if: always()
+        run: just go-test

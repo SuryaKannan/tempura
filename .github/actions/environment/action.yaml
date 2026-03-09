@@ -1,0 +1,10 @@
+name: setup-environment                                                                        
+description: Setup Python, Go, uv, and just
+runs:
+  using: composite
+  steps:
+    - uses: extractions/setup-just@v3
+    - uses: astral-sh/setup-uv@v5
+    - uses: actions/setup-go@v5
+      with:
+        go-version: "1.24"
