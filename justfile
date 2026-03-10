@@ -34,6 +34,11 @@ py-test:
 go-build:
     go build -o bin/tempura ./cmd/tempura
 
+# install tempura binary locally
+[group: 'go']
+go-install:
+    go install ./cmd/tempura
+
 # run server
 [group: 'go']
 go-run:
