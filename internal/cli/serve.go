@@ -21,11 +21,15 @@ func init() {
 }
 
 func handleFry(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "tempura is running!")
+	_, _ = fmt.Fprint(w, "tempura is running!")
 }
 
 func runServer(server *http.Server) {
-	server.ListenAndServe()
+	err := server.ListenAndServe()
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "server did not start up: %v\n", err)
+	}
 }
 
 var serve = &cobra.Command{
@@ -56,6 +60,10 @@ var serve = &cobra.Command{
 
 		defer cancel()
 
-		server.Shutdown(ctx)
+		err := server.Shutdown(ctx)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "server not shut down cleanly:%v\n", err)
+		}
 	},
 }
