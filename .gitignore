@@ -12,3 +12,5 @@ wheels/
 
 # Go build output
 bin/
+
+.DS_Store
