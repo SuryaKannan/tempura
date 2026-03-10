@@ -1,8 +1,13 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -15,8 +20,12 @@ func init() {
 	rootCmd.AddCommand(serve)
 }
 
-func HandleFry(w http.ResponseWriter, r *http.Request) {
+func handleFry(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "tempura is running!")
+}
+
+func runServer(server *http.Server) {
+	server.ListenAndServe()
 }
 
 var serve = &cobra.Command{
@@ -26,7 +35,7 @@ var serve = &cobra.Command{
 
 		mux := http.NewServeMux()
 
-		mux.HandleFunc("/", HandleFry)
+		mux.HandleFunc("/", handleFry)
 
 		server := &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
@@ -35,6 +44,18 @@ var serve = &cobra.Command{
 
 		color.Green("\nserving Tempura on port %d!\n", port)
 
-		server.ListenAndServe()
+		go runServer(server)
+
+		sigChan := make(chan os.Signal, 1)
+
+		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+		<-sigChan
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+		defer cancel()
+
+		server.Shutdown(ctx)
 	},
 }
