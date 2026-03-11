@@ -13,7 +13,7 @@ repos:
     - id: ty
       name: ty check
       # Using 'uvx' ensures 'ty' is available without manual installation
-      entry: uvx ty check
+      entry: uvx ty check --project sdk/python
       language: python
       types: [python]
       # Prevents running once per file; runs on the whole project for accuracy
