@@ -7,7 +7,10 @@ name = "tempura"
 version = "0.1.0"
 description = "sdk for tempura, a lightweight durable workflow engine"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+]
 
 [dependency-groups]
 dev = [
@@ -37,4 +40,8 @@ extend-select = [
     "TC",       # Enforce importing certain types in a TYPE_CHECKING block
     "PTH",      # Use pathlib instead of os.path
     "TD",       # Be diligent with TODO comments
+]
+ignore = [
+    "TC001",    # Move import into a type-checking block
+    "TD003",    # Missing TODO issue link
 ]
