@@ -28,7 +28,7 @@ SQLite (execution state + step outputs)
 
 ## Execution Model
 
-Resume from last checkpoint — NOT Temporal's replay model.
+Crash-safe resumption, NOT automatic crash recovery. Tempura does not restart processes — it makes re-runs cheap by skipping already-completed steps.
 
 ```
 NORMAL RUN:
@@ -39,9 +39,23 @@ CRASH:
 
 RESUME (process restarted externally):
 @batter → queries server → step1 ✅ SKIP → step2 ⏳ RESUME → step3 ⏳ → DONE
+
+RE-RUN (already completed):
+@batter → queries server → same function + same inputs → COMPLETED → return cached output
 ```
 
-On resume, each `@fry` checks the Go server before executing. If a step has a stored output, return it immediately without re-executing. The process must be restarted externally (Docker restart policy, cron, etc).
+The process must be restarted externally (Docker restart policy, cron, user re-runs, etc). Tempura provides the durability, not the restart mechanism.
+
+### Execution Matching
+
+Executions are identified by **function name + input hash** (SHA-256 of JSON-serialized arguments). This determines whether a call is a new execution or a resumption:
+
+- Same function + same inputs + previous run incomplete → resume from last checkpoint
+- Same function + same inputs + previous run completed → return cached output
+- Same function + different inputs → new execution
+- Server not running → decorators become transparent no-ops with a logged warning
+
+On resume, each `@fry` checks the Go server before executing. If a step has a stored output, return it immediately without re-executing.
 
 ## Decorators
 
@@ -102,7 +116,9 @@ Workflows must be linear and deterministic — same step sequence every run.
 - ETL pipelines on a single machine
 - Long-running background jobs that need crash recovery
 
-Not a fit for: GitHub Actions (ephemeral runners), parallel workloads, event-driven workflows.
+Not a fit for: parallel workloads, event-driven workflows.
+
+Note: GitHub Actions can work with Tempura if you cache the SQLite DB between runs (e.g. `actions/cache`). Caches are best-effort so durability isn't guaranteed, but for expensive CI pipelines that fail midway it can save significant time and cost on re-runs.
 
 ## Go Server Responsibilities
 
