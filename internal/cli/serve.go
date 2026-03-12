@@ -2,7 +2,10 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,21 +18,55 @@ import (
 
 var port int = 8732
 
+type BatterRequest struct {
+	FunctionName string         `json:"function_name"`
+	InputHash    string         `json:"input_hash"`
+	Input        map[string]any `json:"input"`
+}
+
+type BatterResponse struct {
+	Status string `json:"status"`
+	Output any    `json:"output"`
+}
+
 func init() {
 	serve.Flags().IntVarP(&port, "port", "p", port, "port to serve tempura")
 	rootCmd.AddCommand(serve)
 }
 
-func handleFry(w http.ResponseWriter, r *http.Request) {
-	_, _ = fmt.Fprint(w, "tempura is running!")
+func handleBatter(w http.ResponseWriter, r *http.Request) {
+
+	var req BatterRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("error: cannot decode batter request")
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	err := json.NewEncoder(w).Encode(BatterResponse{Status: "new", Output: nil})
+
+	if err != nil {
+		log.Println("error: cannot construct response")
+		http.Error(w, "cannot construct response", http.StatusUnprocessableEntity)
+		return
+	}
+
+}
+
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	_, _ = fmt.Fprint(w, "Healthy!")
 }
 
 func runServer(server *http.Server) {
 	err := server.ListenAndServe()
 
-	if err != nil {
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		fmt.Fprintf(os.Stderr, "server did not start up: %v\n", err)
 	}
+
 }
 
 var serve = &cobra.Command{
@@ -39,7 +76,9 @@ var serve = &cobra.Command{
 
 		mux := http.NewServeMux()
 
-		mux.HandleFunc("/", handleFry)
+		mux.HandleFunc("/batter", handleBatter)
+
+		mux.HandleFunc("/health", handleHealth)
 
 		server := &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
