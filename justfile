@@ -39,11 +39,6 @@ go-build:
 go-install:
     go install ./cmd/tempura
 
-# run server
-[group: 'go']
-go-run:
-    go run ./cmd/tempura
-
 # run linting
 [group: 'go']
 go-lint:

@@ -23,11 +23,11 @@ class _TempuraClient:
         req = BatterRequest(
             function_name=func_name, input_hash=func_input_hash, input=func_inputs
         )
-        response = self._client.post("/batter", data=dataclasses.asdict(req))
+        response = self._client.post("/batter", json=dataclasses.asdict(req))
         response.raise_for_status()
 
-        # TODO(SK): reconstruct from response.json()
-        return BatterResponse(status=Status.INCOMPLETE, output={})
+        data = response.json()
+        return BatterResponse(status=Status(data["status"]), output=data.get("output"))
 
     def health_check(self) -> bool:
 

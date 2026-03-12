@@ -2,7 +2,7 @@ from tempura import batter
 
 
 @batter
-def main():
+def main(hi: str = "asd"):
     print("Hello from tempura!")
 
 
