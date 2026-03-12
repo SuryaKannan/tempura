@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -44,7 +45,14 @@ func handleBatter(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(BatterResponse{Status: "new", Output: nil})
+
+	err := json.NewEncoder(w).Encode(BatterResponse{Status: "new", Output: nil})
+
+	if err != nil {
+		log.Println("error: cannot construct response")
+		http.Error(w, "cannot construct response", http.StatusUnprocessableEntity)
+		return
+	}
 
 }
 
@@ -55,7 +63,7 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 func runServer(server *http.Server) {
 	err := server.ListenAndServe()
 
-	if err != nil {
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		fmt.Fprintf(os.Stderr, "server did not start up: %v\n", err)
 	}
 
